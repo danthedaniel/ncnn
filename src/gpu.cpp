@@ -4179,11 +4179,23 @@ VulkanDevice::VulkanDevice(int device_index)
     std::vector<float> compute_queue_priorities(info.compute_queue_count(), 1.f);   // 0.f ~ 1.f
     std::vector<float> transfer_queue_priorities(info.transfer_queue_count(), 1.f); // 0.f ~ 1.f
 
+    // steamframe: NCNN_QUEUE_GLOBAL_PRIORITY=low|medium|high sets the system-wide priority of ncnn's queues
+    // (VK_EXT_global_priority). With GPU preemption, low lets other processes' work (a VR game) preempt ncnn.
+    VkDeviceQueueGlobalPriorityCreateInfoEXT queueGlobalPriority = {VK_STRUCTURE_TYPE_DEVICE_QUEUE_GLOBAL_PRIORITY_CREATE_INFO_EXT, 0, VK_QUEUE_GLOBAL_PRIORITY_MEDIUM_EXT};
+    const char* globalPriority = getenv("NCNN_QUEUE_GLOBAL_PRIORITY");
+    if (globalPriority)
+    {
+        if (strcmp(globalPriority, "low") == 0) queueGlobalPriority.globalPriority = VK_QUEUE_GLOBAL_PRIORITY_LOW_EXT;
+        if (strcmp(globalPriority, "high") == 0) queueGlobalPriority.globalPriority = VK_QUEUE_GLOBAL_PRIORITY_HIGH_EXT;
+        enabledExtensions.push_back("VK_EXT_global_priority");
+        NCNN_LOGE("ncnn queue global priority %s", globalPriority);
+    }
+
     VkDeviceQueueCreateInfo deviceQueueCreateInfos[3];
 
     VkDeviceQueueCreateInfo deviceComputeQueueCreateInfo;
     deviceComputeQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    deviceComputeQueueCreateInfo.pNext = 0;
+    deviceComputeQueueCreateInfo.pNext = globalPriority ? &queueGlobalPriority : 0;
     deviceComputeQueueCreateInfo.flags = 0;
     deviceComputeQueueCreateInfo.queueFamilyIndex = info.compute_queue_family_index();
     deviceComputeQueueCreateInfo.queueCount = info.compute_queue_count();
@@ -4191,7 +4203,7 @@ VulkanDevice::VulkanDevice(int device_index)
 
     VkDeviceQueueCreateInfo deviceTransferQueueCreateInfo;
     deviceTransferQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    deviceTransferQueueCreateInfo.pNext = 0;
+    deviceTransferQueueCreateInfo.pNext = globalPriority ? &queueGlobalPriority : 0;
     deviceTransferQueueCreateInfo.flags = 0;
     deviceTransferQueueCreateInfo.queueFamilyIndex = info.transfer_queue_family_index();
     deviceTransferQueueCreateInfo.queueCount = info.transfer_queue_count();
