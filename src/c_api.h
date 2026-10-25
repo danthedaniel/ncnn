@@ -33,6 +33,10 @@ NCNN_EXPORT ncnn_allocator_t ncnn_allocator_create_unlocked_pool_allocator(void)
 NCNN_EXPORT void ncnn_allocator_destroy(ncnn_allocator_t allocator);
 
 #if NCNN_VULKAN
+/* gpu api */
+NCNN_EXPORT int ncnn_get_gpu_count(void);
+NCNN_EXPORT void ncnn_destroy_gpu_instance(void);
+
 /* pipelinecache api */
 typedef struct __ncnn_pipelinecache_t* ncnn_pipelinecache_t;
 
@@ -87,6 +91,7 @@ NCNN_EXPORT int ncnn_option_get_use_cooperative_matrix(const ncnn_option_t opt);
 NCNN_EXPORT void ncnn_option_set_use_vulkan_compute(ncnn_option_t opt, int enable);
 NCNN_EXPORT void ncnn_option_set_use_local_pool_allocator(ncnn_option_t opt, int enable);
 NCNN_EXPORT void ncnn_option_set_use_winograd_convolution(ncnn_option_t opt, int enable);
+NCNN_EXPORT void ncnn_option_set_use_winograd63_convolution(ncnn_option_t opt, int enable);
 NCNN_EXPORT void ncnn_option_set_use_sgemm_convolution(ncnn_option_t opt, int enable);
 NCNN_EXPORT void ncnn_option_set_use_packing_layout(ncnn_option_t opt, int enable);
 NCNN_EXPORT void ncnn_option_set_use_fp16_packed(ncnn_option_t opt, int enable);

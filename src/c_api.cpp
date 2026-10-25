@@ -147,6 +147,17 @@ void ncnn_allocator_destroy(ncnn_allocator_t allocator)
 }
 
 #if NCNN_VULKAN
+/* gpu api */
+int ncnn_get_gpu_count()
+{
+    return ncnn::get_gpu_count();
+}
+
+void ncnn_destroy_gpu_instance()
+{
+    ncnn::destroy_gpu_instance();
+}
+
 /* pipelinecache api */
 ncnn_pipelinecache_t ncnn_pipelinecache_create(int device_index)
 {
@@ -402,6 +413,11 @@ void ncnn_option_set_use_local_pool_allocator(ncnn_option_t opt, int enable)
 void ncnn_option_set_use_winograd_convolution(ncnn_option_t opt, int enable)
 {
     ((Option*)opt)->use_winograd_convolution = enable;
+}
+
+void ncnn_option_set_use_winograd63_convolution(ncnn_option_t opt, int enable)
+{
+    ((Option*)opt)->use_winograd63_convolution = enable;
 }
 
 void ncnn_option_set_use_sgemm_convolution(ncnn_option_t opt, int enable)
