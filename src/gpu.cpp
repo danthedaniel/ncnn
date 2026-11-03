@@ -1802,6 +1802,13 @@ void GpuInfoPrivate::query_extension_properties()
         // turnip crash when compiling large shader with full subgroup
         querySubgroupSizeControlFeatures.computeFullSubgroups = VK_FALSE;
     }
+
+    if (queryDriverProperties.driverID == VK_DRIVER_ID_MESA_TURNIP && physicalDeviceProperties.deviceID == 0x43051401)
+    {
+        // adreno 750 (a7xx gen3) has compliant dp4acc, which ir3 emits for signed 4x8 dot, but turnip before
+        // mesa f0bc8697b5 (2026-10) reports it as not accelerated; the int8 shaders' dot path is ~2x faster here
+        queryShaderIntegerDotProductProperties.integerDotProduct4x8BitPackedSignedAccelerated = VK_TRUE;
+    }
 }
 
 GpuInfo::GpuInfo()
