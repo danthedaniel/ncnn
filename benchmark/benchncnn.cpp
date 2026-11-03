@@ -38,6 +38,10 @@ public:
 static int g_warmup_loop_count = 8;
 static int g_loop_count = 4;
 static bool g_enable_cooling_down = true;
+static int g_sgemm = 1;
+static int g_winograd63 = 1;
+static int g_interval = 0;
+static int g_winograd = 1;
 
 static ncnn::UnlockedPoolAllocator g_blob_pool_allocator;
 static ncnn::PoolAllocator g_workspace_pool_allocator;
@@ -129,6 +133,9 @@ void benchmark(const char* comment, const std::vector<ncnn::Mat>& _in, const ncn
 
     for (int i = 0; i < g_loop_count; i++)
     {
+        if (g_interval)
+            ncnn::sleep(g_interval);
+
         double start = ncnn::get_current_time();
         {
             ncnn::Extractor ex = net.create_extractor();
@@ -302,6 +309,14 @@ int main(int argc, char** argv)
             model = value;
         if (strcmp(key, "shape") == 0)
             inputs = parse_shape_list(value);
+        if (strcmp(key, "sgemm") == 0)
+            g_sgemm = atoi(value);
+        if (strcmp(key, "winograd63") == 0)
+            g_winograd63 = atoi(value);
+        if (strcmp(key, "interval") == 0)
+            g_interval = atoi(value);
+        if (strcmp(key, "winograd") == 0)
+            g_winograd = atoi(value);
     }
 
     if (model && inputs.empty())
@@ -353,8 +368,9 @@ int main(int argc, char** argv)
     opt.workspace_vkallocator = g_blob_vkallocator;
     opt.staging_vkallocator = g_staging_vkallocator;
 #endif // NCNN_VULKAN
-    opt.use_winograd_convolution = true;
-    opt.use_sgemm_convolution = true;
+    opt.use_winograd_convolution = g_winograd;
+    opt.use_sgemm_convolution = g_sgemm;
+    opt.use_winograd63_convolution = g_winograd63;
     opt.use_int8_inference = true;
     opt.use_vulkan_compute = use_vulkan_compute;
     opt.use_fp16_packed = true;

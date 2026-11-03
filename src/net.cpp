@@ -3280,6 +3280,9 @@ int Extractor::extract(int blob_index, Mat& feat, int type)
             cmd.create_query_pool(d->net->layers().size() * 2);
 #endif // NCNN_BENCHMARK
 
+#if NCNN_BENCHMARK
+            double t_record = get_current_time();
+#endif // NCNN_BENCHMARK
             VkMat feat_gpu;
             ret = extract(blob_index, feat_gpu, cmd);
 
@@ -3287,11 +3290,25 @@ int Extractor::extract(int blob_index, Mat& feat, int type)
             {
                 cmd.record_download(feat_gpu, d->blob_mats[blob_index], d->opt);
 
+#if NCNN_BENCHMARK
+                double t_submit = get_current_time();
+#endif // NCNN_BENCHMARK
                 ret = cmd.submit_and_wait();
 
 #if NCNN_BENCHMARK
+                double t_done = get_current_time();
                 std::vector<uint64_t> results(d->net->layers().size() * 2);
                 cmd.get_query_pool_results(0, d->net->layers().size() * 2, results);
+                uint64_t first = UINT64_MAX, last = 0;
+                for (size_t i = 0; i < results.size(); i++)
+                {
+                    if (results[i] == 0)
+                        continue;
+                    first = std::min(first, results[i]);
+                    last = std::max(last, results[i]);
+                }
+                NCNN_LOGE("phases record %.3fms submit_wait %.3fms gpu_span %.3fms", t_submit - t_record, t_done - t_submit,
+                          (last - first) * d->net->vulkan_device()->info.timestamp_period() / 1e6);
                 for (size_t i = 0; i < d->net->layers().size(); i++)
                 {
                     uint64_t start = results[i * 2];
@@ -3300,7 +3317,8 @@ int Extractor::extract(int blob_index, Mat& feat, int type)
                         continue;
 
                     double duration_us = (end - start) * d->net->vulkan_device()->info.timestamp_period() / 1000;
-                    NCNN_LOGE("%-24s %-30s %8.2lfus    |", d->net->layers()[i]->type.c_str(), d->net->layers()[i]->name.c_str(), duration_us);
+                    double start_us = (start - first) * d->net->vulkan_device()->info.timestamp_period() / 1000;
+                    NCNN_LOGE("%-24s %-30s %8.2lfus    | at %.2lfus", d->net->layers()[i]->type.c_str(), d->net->layers()[i]->name.c_str(), duration_us, start_us);
                 }
 #endif // NCNN_BENCHMARK
             }
