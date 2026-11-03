@@ -33,6 +33,10 @@ afp activation_afp(afp v, int activation_type, float activation_param_0, float a
         v = v * tanh(log(exp(v) + afp(1.f)));
 #endif
     }
+    if (activation_type == 7)
+    {
+        v = v / (afp(1.f) + exp(-v));
+    }
     if (activation_type == 6)
     {
         const afp alpha = afp(activation_param_0);
@@ -71,6 +75,10 @@ afpvec4 activation_afpvec4(afpvec4 v, int activation_type, float activation_para
 #else
         v = v * tanh(log(exp(v) + afp(1.f)));
 #endif
+    }
+    if (activation_type == 7)
+    {
+        v = v / (afp(1.f) + exp(-v));
     }
     if (activation_type == 6)
     {

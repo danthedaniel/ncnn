@@ -40,6 +40,10 @@ static inline float32x4_t activation_ps(float32x4_t _v, int activation_type, con
     {
         _v = vmulq_f32(_v, tanh_ps(log_ps(vaddq_f32(exp_ps(_v), vdupq_n_f32(1.f)))));
     }
+    else if (activation_type == 7)
+    {
+        _v = vmulq_f32(_v, sigmoid_ps(_v));
+    }
     else if (activation_type == 6)
     {
         const float alpha = activation_params[0];
@@ -88,6 +92,10 @@ static inline __fp16 activation_ss_f16(__fp16 v, int activation_type, const ncnn
     {
         v = v * (__fp16)tanhf(logf(expf((float)v) + 1.f));
     }
+    else if (activation_type == 7)
+    {
+        v = v / ((__fp16)1.f + (__fp16)expf(-v));
+    }
     else if (activation_type == 6)
     {
         const __fp16 alpha = (__fp16)(activation_params[0]);
@@ -135,6 +143,10 @@ static inline float16x4_t activation_ps_f16(float16x4_t _v, int activation_type,
     {
         _v = vmul_f16(_v, tanh_ps_f16(log_ps_f16(vadd_f16(exp_ps_f16(_v), vdup_n_f16(1.f)))));
     }
+    else if (activation_type == 7)
+    {
+        _v = vmul_f16(_v, sigmoid_ps_f16(_v));
+    }
     else if (activation_type == 6)
     {
         const __fp16 alpha = (__fp16)activation_params[0];
@@ -180,6 +192,10 @@ static inline float16x8_t activation_ps_f16(float16x8_t _v, int activation_type,
     else if (activation_type == 5)
     {
         _v = vmulq_f16(_v, tanh_ps_f16(log_ps_f16(vaddq_f16(exp_ps_f16(_v), vdupq_n_f16(1.f)))));
+    }
+    else if (activation_type == 7)
+    {
+        _v = vmulq_f16(_v, sigmoid_ps_f16(_v));
     }
     else if (activation_type == 6)
     {

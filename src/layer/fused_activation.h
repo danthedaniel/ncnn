@@ -44,6 +44,13 @@ static NCNN_FORCEINLINE float activation_ss(float v, int activation_type, const 
         v = v * tanhf(logf(expf(v) + 1.f));
         break;
     }
+    case 7:
+    {
+        v = std::min(v, 88.3762626647949f);
+        v = std::max(v, -88.3762626647949f);
+        v = v / (1.f + expf(-v));
+        break;
+    }
     case 6:
     {
         float alpha = activation_params[0];
@@ -102,6 +109,13 @@ static ncnn::Layer* create_activation_layer(int activation_type, const ncnn::Mat
     else if (activation_type == 5)
     {
         activation = ncnn::create_layer_cpu(ncnn::LayerType::Mish);
+
+        ncnn::ParamDict pd;
+        activation->load_param(pd);
+    }
+    else if (activation_type == 7)
+    {
+        activation = ncnn::create_layer_cpu(ncnn::LayerType::Swish);
 
         ncnn::ParamDict pd;
         activation->load_param(pd);
